@@ -19,7 +19,6 @@ out/
 *.tsbuildinfo
 
 # Uploads / Local Data
-backend/uploads/
 uploads/
 images/
 

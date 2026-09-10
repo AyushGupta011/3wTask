@@ -15,7 +15,8 @@ const getPosts = asyncHandler(async (req, res) => {
     .sort('-createdAt')
     .skip(skip)
     .limit(limit)
-    .populate('author', 'username avatar');
+    .populate('author', 'username avatar')
+    .populate('comments.user', 'username avatar');
 
   res.status(200).json({
     success: true,
@@ -51,7 +52,7 @@ const createPost = asyncHandler(async (req, res) => {
   let image = undefined;
 
   if (req.file) {
-    image = `/uploads/${req.file.filename}`;
+    image = req.file.path;
   }
 
   if (!text && !image) {
