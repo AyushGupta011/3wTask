@@ -6,8 +6,13 @@ const getPosts = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
   const userId = req.query.userId;
+  const likedBy = req.query.likedBy;
+  const commentedBy = req.query.commentedBy;
 
-  const query = userId ? { author: userId } : {};
+  const query = {};
+  if (userId) query.author = userId;
+  if (likedBy) query.likes = likedBy;
+  if (commentedBy) query['comments.user'] = commentedBy;
 
   const total = await Post.countDocuments(query);
 

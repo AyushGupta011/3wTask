@@ -1,8 +1,10 @@
 import API from './axios';
 
-export const getPostsAPI = (page = 1, limit = 10, userId = null) => {
+export const getPostsAPI = (page = 1, limit = 10, userId = null, likedBy = null, commentedBy = null) => {
   let url = `/posts?page=${page}&limit=${limit}`;
   if (userId) url += `&userId=${userId}`;
+  if (likedBy) url += `&likedBy=${likedBy}`;
+  if (commentedBy) url += `&commentedBy=${commentedBy}`;
   return API.get(url);
 };
 

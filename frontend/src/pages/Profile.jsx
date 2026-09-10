@@ -42,6 +42,8 @@ export default function Profile() {
     }
   };
 
+  const [tabLoading, setTabLoading] = useState(false);
+
   useEffect(() => {
     const fetchProfileData = async () => {
       setLoading(true);
@@ -51,9 +53,6 @@ export default function Profile() {
         setUser(fetchedUser);
         setStats(userRes.data.data.stats);
         setIsFollowing(fetchedUser.followers?.includes(currentUser?._id));
-        
-        const postsRes = await getPostsAPI(1, 10, id);
-        setPosts(postsRes.data.data.posts);
       } catch (error) {
         console.error('Failed to load profile:', error);
       } finally {
@@ -62,6 +61,35 @@ export default function Profile() {
     };
     fetchProfileData();
   }, [id, currentUser]);
+
+  useEffect(() => {
+    const fetchTabPosts = async () => {
+      if (tabValue === 1) return; // Promotions (not implemented yet)
+      setTabLoading(true);
+      try {
+        let postsRes;
+        if (tabValue === 0) {
+          postsRes = await getPostsAPI(1, 10, id, null, null);
+        } else if (tabValue === 2) {
+          postsRes = await getPostsAPI(1, 10, null, id, null);
+        } else if (tabValue === 3) {
+          postsRes = await getPostsAPI(1, 10, null, null, id);
+        }
+        if (postsRes) {
+          setPosts(postsRes.data.data.posts);
+        }
+      } catch (error) {
+        console.error('Failed to load tab posts:', error);
+      } finally {
+        setTabLoading(false);
+      }
+    };
+    
+    // Only fetch if profile has finished loading and we aren't on promotions tab
+    if (!loading && tabValue !== 1) {
+      fetchTabPosts();
+    }
+  }, [tabValue, id, loading]);
 
   const handlePostUpdate = (updatedPost) => {
     setPosts((prevPosts) =>
@@ -271,24 +299,32 @@ export default function Profile() {
 
         {/* Feed Content */}
         <Box pt={3}>
-          {tabValue === 0 && (
-            posts.length === 0 ? (
-              <Box textAlign="center" py={4}>
-                <Typography color="text.secondary">No posts yet.</Typography>
-              </Box>
-            ) : (
-              posts.map((post) => (
-                <Box key={post._id} mb={3}>
-                  <PostCard post={post} onPostUpdate={handlePostUpdate} />
-                </Box>
-              ))
-            )
-          )}
-          {tabValue !== 0 && (
+          {tabLoading ? (
             <Box textAlign="center" py={8}>
               <CircularProgress size={24} sx={{ mb: 2 }} />
-              <Typography color="text.secondary">Loading...</Typography>
+              <Typography color="text.secondary">Loading posts...</Typography>
             </Box>
+          ) : (
+            <>
+              {(tabValue === 0 || tabValue === 2 || tabValue === 3) && (
+                posts.length === 0 ? (
+                  <Box textAlign="center" py={4}>
+                    <Typography color="text.secondary">No posts found.</Typography>
+                  </Box>
+                ) : (
+                  posts.map((post) => (
+                    <Box key={post._id} mb={3}>
+                      <PostCard post={post} onPostUpdate={handlePostUpdate} />
+                    </Box>
+                  ))
+                )
+              )}
+              {tabValue === 1 && (
+                <Box textAlign="center" py={8}>
+                  <Typography color="text.secondary">Promotions feature coming soon.</Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </Container>
